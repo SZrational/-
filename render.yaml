@@ -1,0 +1,46 @@
+# Render 基础设施配置
+services:
+  - type: web
+    name: optical-simulator  # 服务名称（自定义）
+    plan: free               # 免费套餐
+    region: frankfurt        # 欧洲节点对中国访问更友好
+
+    # 构建配置
+    buildCommand: |
+      pip install -r requirements.txt
+      # 如果有其他构建步骤（如编译C扩展）
+      # python setup.py install
+
+    # 启动命令（使用gunicorn生产级服务器）
+    startCommand: gunicorn --workers 4 --threads 2 --timeout 120 app:app
+
+    # 环境变量
+    envVars:
+      - key: PORT
+        value: 8000  # 必须与startCommand中的gunicorn端口一致
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: OPTILAND_LICENSE
+        generateValue: true  # 自动生成随机密钥（实际使用时替换为真实值）
+      - key: TORCH_DEVICE
+        value: cpu  # 明确指定使用CPU
+
+    # 健康检查（必须与app.py中的路由一致）
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+
+    # 资源分配（免费版限制）
+    resources:
+      cpu: 0.5  # 共享CPU核心
+      memoryMB: 512  # 内存限制
+
+    # 持久化存储（模型文件需要）
+    disk:
+      name: model-storage
+      mountPath: /models  # 模型文件建议放在此目录
+      sizeGB: 1  # 免费版最大1GB
+
+    # 自动部署配置
+    autoDeploy: true
+    branch: main  # 监听main分支的变更
+    pullRequestPreviewsEnabled: true  # 启用PR预览环境

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>代理光线追踪演示</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>交互式光线追踪代理模型</h1>
+        <p>对比一个训练好的神经网络（代理模型）和一个解析光线追踪器（Optiland）的性能。</p>
+        
+        <div class="main-content">
+            <!-- 输入控制区 -->
+            <div class="controls">
+                <h2>光线参数</h2>
+                <div class="slider-group">
+                    <label for="hx">视场 Hx: <span id="hx-val">0.0</span></label>
+                    <input type="range" id="hx" min="-1" max="1" step="0.01" value="0.0">
+                </div>
+                <div class="slider-group">
+                    <label for="hy">视场 Hy: <span id="hy-val">0.7</span></label>
+                    <input type="range" id="hy" min="-1" max="1" step="0.01" value="0.7">
+                </div>
+                <div class="slider-group">
+                    <label for="px">光瞳 Px: <span id="px-val">0.0</span></label>
+                    <input type="range" id="px" min="-1" max="1" step="0.01" value="0.0">
+                </div>
+                <div class="slider-group">
+                    <label for="py">光瞳 Py: <span id="py-val">0.0</span></label>
+                    <input type="range" id="py" min="-1" max="1" step="0.01" value="0.0">
+                </div>
+                
+                <button id="trace-btn">追踪光线</button>
+                
+                <!-- 更新批量测试控制区域 -->
+                <div class="batch-controls">
+                    <div class="batch-input-group">
+                        <label for="batch-count">
+                            <strong>批量测试光线数量:</strong>
+                        </label>
+                        <div class="input-row">
+                            <input type="number" id="batch-count" min="1" max="500" value="20">
+                            <button id="batch-test-btn" class="batch-btn">批量测试 (20条)</button>
+                            <button id="cancel-test-btn" class="cancel-btn" style="display: none;">取消测试</button>
+                        </div>
+                    </div>
+                    <div class="progress-info">
+                        <div class="quick-options">
+                            快速选择: 
+                            <span class="quick-option" data-count="10">10条</span> | 
+                            <span class="quick-option" data-count="50">50条</span> | 
+                            <span class="quick-option" data-count="100">100条</span> | 
+                            <span class="quick-option" data-count="200">200条</span>
+                        </div>
+                        <small>范围: 1-500 条光线 (500条约需15-25秒)</small>
+                    </div>
+                    <div id="progress-bar" class="progress-container" style="display: none;">
+                        <div class="progress-header">
+                            <span id="progress-text">准备中...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="progress-fill" class="progress-bar-fill"></div>
+                        </div>
+                        <div id="time-estimate" class="time-estimate"></div>
+                    </div>
+                </div>
+                
+                <div id="loader" class="loader" style="display: none;"></div>
+            </div>
+
+            <!-- 结果与可视化区 -->
+            <div class="results">
+                <h2>像平面落点 (mm)</h2>
+                <div class="chart-container">
+                    <canvas id="resultChart"></canvas>
+                </div>
+                <div class="metrics">
+                    <table>
+                        <tr>
+                            <th>指标</th>
+                            <th>代理模型 (神经网络)</th>
+                            <th>解析模型 (Optiland)</th>
+                        </tr>
+                        <tr>
+                            <td>坐标 (x, y)</td>
+                            <td id="surrogate-coords">-</td>
+                            <td id="analytical-coords">-</td>
+                        </tr>
+                        <tr>
+                            <td>耗时 (ms)</td>
+                            <td id="surrogate-time">-</td>
+                            <td id="analytical-time">-</td>
+                        </tr>
+                    </table>
+                    <div class="summary">
+                        <p><strong>误差:</strong> <span id="error-val">-</span> mm</p>
+                        <p><strong>速度提升:</strong> <span id="speedup-val">-</span> 倍</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
